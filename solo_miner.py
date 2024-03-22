@@ -11,13 +11,16 @@ import socket
 import time
 import json
 import sys
+import os
 
 # Input your Bitcoin Address
+name = input("What is the miner's name you want to appear at the pool's GUI?")
 address = input("Input your BTC address")
+password = input("Input password for auto authentication")
 
 
 def handler(signal_received, frame):
-    # Handle any cleanup here
+    # Handle any cleanup hereF
     ctx.fShutdown = True
     print('Terminating miner, please wait..')
 
@@ -53,6 +56,7 @@ def check_for_shutdown(t):
         if n != -1:
             ctx.list_of_Threads_Running[n] = False
             t.exit = True
+            sys.exit(t)
 
 
 class ExitedThread(threading.Thread):
@@ -79,7 +83,7 @@ class ExitedThread(threading.Thread):
                 logg(e)
             ctx.list_of_Threads_Running[n] = False
 
-            time.sleep(5)
+            time.sleep(2)
             pass
 
     def thread_handler2(self, arg):
@@ -186,22 +190,29 @@ def bitcoin_miner(t, restarted=False):
         nNonce += 1
 
 
-def block_listener(t):
-    # init a connection to ckpool
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('solo.ckpool.org', 3333))
-    # send a handle subscribe message 
-    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
-    lines = sock.recv(1024).decode().split('\n')
-    response = json.loads(lines[0])
-    ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
-    # send and handle authorize message  
-    sock.sendall(b'{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}\n')
+def mining_notify(sock):
     response = b''
     while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
 
     responses = [json.loads(res) for res in response.decode().split('\n') if
                  len(res.strip()) > 0 and 'mining.notify' in res]
+    logg(responses)
+    return responses
+
+
+def block_listener(t):
+    # init a connection to ckpool
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('solo.ckpool.org', 3333))
+    # send a handle subscribe message 
+    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": [name]}\n')
+    lines = sock.recv(1024).decode().split('\n')
+    response = json.loads(lines[0])
+    ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
+    # send and handle authorize message  
+    sock.sendall(b'{"params": [name' + address.encode() + b', password], "id": 2, "method": "mining.authorize"}\n')
+    responses = mining_notify(sock)
+
     (ctx.job_id, ctx.previous_hash, ctx.coin_base_1, ctx.coin_base_2, ctx.merkle_branch, ctx.version, ctx.nbits, ctx.n_time, ctx.clean_jobs) = responses[0]['params']
     logg("[*] Coin_base_1:")
     logg(ctx.coin_base_1)
@@ -218,10 +229,7 @@ def block_listener(t):
             break
 
         # check for new block
-        response = b''
-        while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
-        responses = [json.loads(res) for res in response.decode().split('\n') if
-                     len(res.strip()) > 0 and 'mining.notify' in res]
+        responses = mining_notify(sock)
 
         if responses[0]['params'][1] != ctx.previous_hash:
             # new block detected on network 
