@@ -287,14 +287,13 @@ def start_mining():
     subscribe_t.start()
     logg("[*] Subscribe thread started.")
 
-    time.sleep(4)
-    for counter in range(os.cpu_count() - 1):
-        miner_t = CoinMinerThread(None)
-        miner_t.start()
-        logg("[*] Bitcoin mining process no : " + str(counter) + " has started")
-        print('Bitcoin mining process no : " + str(counter) + " has started')
+    time.sleep(1)
+    miner_t = CoinMinerThread(None)
+    miner_t.start()
+    logg("[*] Bitcoin mining process has started")
+    print('Bitcoin mining started')
 
-    
+
 if __name__ == '__main__':
     signal(SIGINT, handler)
     start_mining()
