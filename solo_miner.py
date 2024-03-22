@@ -195,7 +195,7 @@ def block_listener(t):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('solo.ckpool.org', 3333))
     # send a handle subscribe message 
-    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": [name]}\n')
+    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
     lines = sock.recv(1024).decode().split('\n')
     response = json.loads(lines[0])
     ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
