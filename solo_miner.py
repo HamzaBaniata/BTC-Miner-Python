@@ -1,3 +1,4 @@
+import os
 from signal import signal, SIGINT
 import context as ctx
 import traceback
@@ -11,6 +12,7 @@ import socket
 import time
 import json
 import sys
+from multiprocessing import Process
 
 # Input your Bitcoin Address
 myname = input("What is the miner's name you want to appear at the pool's GUI? : ")
@@ -287,12 +289,16 @@ def start_mining():
     logg("[*] Subscribe thread started.")
 
     time.sleep(4)
-
-    miner_t = CoinMinerThread(None)
-    miner_t.start()
-    logg("[*] Bitcoin miner thread started")
-
-    print('Bitcoin Miner started')
+    mining_processes = []
+    for counter in range(os.cpu_count() - 1):
+        process = Process(target=CoinMinerThread, args=(None,))
+        process.start()
+        logg("[*] Bitcoin mining process no : " + str(counter) + " has started")
+        print('Bitcoin mining process no : " + str(counter) + " has started')
+        mining_processes.append(process)
+        
+    for process in mining_processes:
+        process.join()
 
 
 if __name__ == '__main__':
