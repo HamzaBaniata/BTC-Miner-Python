@@ -190,16 +190,6 @@ def bitcoin_miner(t, restarted=False):
         nNonce += 1
 
 
-def mining_notify(sock):
-    response = b''
-    while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
-
-    responses = [json.loads(res) for res in response.decode().split('\n') if
-                 len(res.strip()) > 0 and 'mining.notify' in res]
-    logg(responses)
-    return responses
-
-
 def block_listener(t):
     # init a connection to ckpool
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -211,7 +201,12 @@ def block_listener(t):
     ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
     # send and handle authorize message  
     sock.sendall(b'{"params": [name' + address.encode() + b', password], "id": 2, "method": "mining.authorize"}\n')
-    responses = mining_notify(sock)
+    response = b''
+    while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
+
+    responses = [json.loads(res) for res in response.decode().split('\n') if
+                 len(res.strip()) > 0 and 'mining.notify' in res]
+    logg(responses)
 
     (ctx.job_id, ctx.previous_hash, ctx.coin_base_1, ctx.coin_base_2, ctx.merkle_branch, ctx.version, ctx.nbits, ctx.n_time, ctx.clean_jobs) = responses[0]['params']
     logg("[*] Coin_base_1:")
@@ -229,7 +224,12 @@ def block_listener(t):
             break
 
         # check for new block
-        responses = mining_notify(sock)
+        response = b''
+        while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
+
+        responses = [json.loads(res) for res in response.decode().split('\n') if
+                     len(res.strip()) > 0 and 'mining.notify' in res]
+        logg(responses)
 
         if responses[0]['params'][1] != ctx.previous_hash:
             # new block detected on network 
