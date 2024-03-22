@@ -12,7 +12,6 @@ import socket
 import time
 import json
 import sys
-from multiprocessing import Process
 
 # Input your Bitcoin Address
 myname = input("What is the miner's name you want to appear at the pool's GUI? : ")
@@ -289,18 +288,13 @@ def start_mining():
     logg("[*] Subscribe thread started.")
 
     time.sleep(4)
-    mining_processes = []
     for counter in range(os.cpu_count() - 1):
-        process = Process(target=CoinMinerThread, args=(None,))
-        process.start()
+        miner_t = CoinMinerThread(None)
+        miner_t.start()
         logg("[*] Bitcoin mining process no : " + str(counter) + " has started")
         print('Bitcoin mining process no : " + str(counter) + " has started')
-        mining_processes.append(process)
-        
-    for process in mining_processes:
-        process.join()
 
-
+    
 if __name__ == '__main__':
     signal(SIGINT, handler)
     start_mining()
