@@ -194,13 +194,13 @@ def block_listener(t):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(('public-pool.io', 21496))
     # send a handle subscribe message 
-    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": [' + name.encode() + b']}\n')
+    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
     lines = sock.recv(1024).decode().split('\n')
     response = json.loads(lines[0])
     ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
     # send and handle authorize message
 
-    sock.sendall(b'{"params": [' + user_name + b', ' + password.encode() + b'], "id": 2, "method": "mining.authorize"}\n')
+    sock.sendall(b'{"params": ["' + address.encode() + b'", "password"], "id": 2, "method": "mining.authorize"}\n')
     response = b''
     while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
 
