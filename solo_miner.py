@@ -11,7 +11,6 @@ import socket
 import time
 import json
 import sys
-import os
 
 # Input your Bitcoin Address
 name = input("What is the miner's name you want to appear at the pool's GUI?")
@@ -156,9 +155,9 @@ def bitcoin_miner(t, restarted=False):
                       '000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000'
         current_hash = hashlib.sha256(hashlib.sha256(binascii.unhexlify(block_header)).digest()).digest()
         current_hash = binascii.hexlify(current_hash).decode()
-
-        # Logg all hashes that start with 7 zeros or more
-        if current_hash.startswith('0000000'): logg('[*] New hash: {} for block {}'.format(current_hash, work_on + 1))
+        #
+        # # Logg all hashes that start with 7 zeros or more
+        # if current_hash.startswith('0000000'): logg('[*] New hash: {} for block {}'.format(current_hash, work_on + 1))
 
         this_hash = int(current_hash, 16)
 
@@ -191,15 +190,17 @@ def bitcoin_miner(t, restarted=False):
 
 def block_listener(t):
     # init a connection to ckpool
+    user_name = name.encode() + address.encode()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('solo.ckpool.org', 3333))
+    sock.connect(('public-pool.io', 21496))
     # send a handle subscribe message 
-    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
+    sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": [' + name.encode() + b']}\n')
     lines = sock.recv(1024).decode().split('\n')
     response = json.loads(lines[0])
     ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
-    # send and handle authorize message  
-    sock.sendall(b'{"params": ["' + address.encode() + b'", password], "id": 2, "method": "mining.authorize"}\n')
+    # send and handle authorize message
+
+    sock.sendall(b'{"params": [' + user_name + b', ' + password.encode() + b'], "id": 2, "method": "mining.authorize"}\n')
     response = b''
     while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
 
