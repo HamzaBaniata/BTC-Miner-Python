@@ -83,8 +83,7 @@ class ExitedThread(threading.Thread):
                 logg(e)
             ctx.list_of_Threads_Running[n] = False
 
-            time.sleep(2)
-            pass
+            time.sleep(1)
 
     def thread_handler2(self, arg):
         raise NotImplementedError("must impl this func")
@@ -95,7 +94,7 @@ class ExitedThread(threading.Thread):
     def try_exit(self):
         self.exit = True
         ctx.list_of_Threads_Running[self.n] = False
-        pass
+        sys.exit()
 
 
 def bitcoin_miner(t, restarted=False):
@@ -200,7 +199,7 @@ def block_listener(t):
     response = json.loads(lines[0])
     ctx.sub_details, ctx.extra_nonce_1, ctx.extra_nonce_2_size = response['result']
     # send and handle authorize message  
-    sock.sendall(b'{"params": [name' + address.encode() + b', password], "id": 2, "method": "mining.authorize"}\n')
+    sock.sendall(b'{"params": ["' + address.encode() + b'", password], "id": 2, "method": "mining.authorize"}\n')
     response = b''
     while response.count(b'\n') < 4 and not (b'mining.notify' in response): response += sock.recv(1024)
 
