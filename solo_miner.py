@@ -13,9 +13,11 @@ import json
 import sys
 
 # Input your Bitcoin Address
-myname = input("What is the miner's name you want to appear at the pool's GUI?")
-address = input("Input your BTC address")
-password = input("Input password for auto authentication")
+myname = input("What is the miner's name you want to appear at the pool's GUI? : ")
+address = input("Input your BTC address : ")
+password = input("Input password for auto authentication : ")
+pool_address = input("Input pool URL : ")
+pool_port = input("Input the port to connect to : ")
 
 
 def handler(signal_received, frame):
@@ -189,10 +191,10 @@ def bitcoin_miner(t, restarted=False):
 
 
 def block_listener(t):
-    # init a connection to ckpool
+    # init a connection to pool
     user_name = myname.encode() + address.encode()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('public-pool.io', 21496))
+    sock.connect((pool_address, pool_port))
     # send a handle subscribe message 
     sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
     lines = sock.recv(1024).decode().split('\n')
