@@ -192,7 +192,7 @@ def block_listener(t):
     # init a connection to ckpool
     user_name = myname.encode() + address.encode()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('public-pool.io', 21496))
+    sock.connect(('solo.ckpool.org', 3333))
     # send a handle subscribe message 
     sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
     lines = sock.recv(1024).decode().split('\n')
