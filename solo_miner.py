@@ -194,7 +194,7 @@ def block_listener(t):
     # init a connection to pool
     user_name = myname.encode() + address.encode()
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((pool_address, pool_port))
+    sock.connect((pool_address, int(pool_port)))
     # send a handle subscribe message 
     sock.sendall(b'{"id": 1, "method": "mining.subscribe", "params": []}\n')
     lines = sock.recv(1024).decode().split('\n')
